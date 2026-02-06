@@ -102,7 +102,7 @@ sub configure {
                 customer_id   => $customer_id // '',
             };
 
-            $self->set_encrypted_syspref('WebhookCredentials', $credentials);
+            $self->set_encrypted_syspref('WebhookCredentials', $credentials );
             INFO("OAuth credentials configured via system preference");
         } else {
             # If any credential field is provided, validate required fields
@@ -205,7 +205,7 @@ sub migrate_credentials_from_koha_conf {
         customer_id   => $customer_id // '',
     };
 
-    $self->set_encrypted_syspref('WebhookCredentials', $credentials);
+    $self->set_encrypted_syspref('WebhookCredentials', $credentials );
 
     INFO("Migrated OAuth credentials from koha-conf.xml to system preference");
 }
@@ -960,7 +960,7 @@ Returns the display value for the auth URL, checking system preference first the
 
 sub get_display_auth_url {
     my ($self) = @_;
-    my $syspref = C4::Context->preference('WebhookCredentials');
+    my $syspref = $self->get_decrypted_syspref( C4::Context->preference('WebhookCredentials') );
     return $syspref->{auth_url} if $syspref;
     return C4::Context->config('webhook_auth_url') // '';
 }
@@ -973,7 +973,7 @@ Returns the display value for the client ID, checking system preference first th
 
 sub get_display_client_id {
     my ($self) = @_;
-    my $syspref = C4::Context->preference('WebhookCredentials');
+    my $syspref = $self->get_decrypted_syspref('WebhookCredentials');
     return $syspref->{client_id} if $syspref;
     return C4::Context->config('webhook_client_id') // '';
 }
@@ -986,7 +986,7 @@ Returns the display value for the notice URL, checking system preference first t
 
 sub get_display_notice_url {
     my ($self) = @_;
-    my $syspref = C4::Context->preference('WebhookCredentials');
+    my $syspref = $self->get_decrypted_syspref('WebhookCredentials');
     return $syspref->{notice_url} if $syspref;
     return C4::Context->config('webhook_notice_url') // '';
 }
@@ -999,11 +999,27 @@ Returns the display value for the customer ID, checking system preference first 
 
 sub get_display_customer_id {
     my ($self) = @_;
-    my $syspref = C4::Context->preference('WebhookCredentials');
+    my $syspref = $self->get_decrypted_syspref('WebhookCredentials');
     return $syspref->{customer_id} // '' if $syspref;
     return C4::Context->config('webhook_customer_id') // '';
 }
 
+=head3 get_decrypted_syspref
+
+Retrieves and decrypts webhook credentials from system preference.
+
+=cut
+
+sub get_decrypted_syspref {
+    my ($self, $preference_name) = @_;
+
+    my $syspref = C4::Context->preference('WebhookCredentials');
+    my $decrypted_json = $self->decrypt_credentials($syspref);
+    my $decrypted = decode_json( $decrypted_json );
+
+    return $decrypted;
+
+}
 =head3 set_encrypted_syspref
 
 Encrypts and stores OAuth2 credentials as a system preference.
@@ -1012,8 +1028,9 @@ Encrypts and stores OAuth2 credentials as a system preference.
 
 sub set_encrypted_syspref {
     my ($self, $preference_name, $credentials) = @_;
+    my $json_creds = encode_json( $credentials );
 
-    my $encrypted = $self->encrypt_credentials($credentials);
+    my $encrypted = $self->encrypt_credentials($json_creds);
 
     C4::Context->set_preference($preference_name, $encrypted);
 }

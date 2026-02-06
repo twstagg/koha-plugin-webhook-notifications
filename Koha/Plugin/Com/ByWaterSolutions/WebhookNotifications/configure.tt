@@ -14,20 +14,12 @@
     <h1>Webhook Notifications Configuration</h1>
 
     <div class="alert alert-info">
-        <strong>Note:</strong> Authentication and endpoint settings are configured via environment variables:
-        <ul>
-            <li><code>WEBHOOK_AUTH_URL</code> - OAuth2 token endpoint (required)</li>
-            <li><code>WEBHOOK_CLIENT_ID</code> - OAuth2 client ID (required)</li>
-            <li><code>WEBHOOK_CLIENT_SECRET</code> - OAuth2 client secret (required)</li>
-            <li><code>WEBHOOK_NOTICE_URL</code> - Webhook endpoint for notices (required)</li>
-            <li><code>WEBHOOK_CUSTOMER_ID</code> - Customer ID header value (optional, required by some APIs)</li>
-        </ul>
         <div class="alert alert-info">
             <strong>Additional Information:</strong>
             <ul>
                 <li>Credentials are encrypted using AES-256 encryption</li>
                 <li>You can configure credentials either through this form or via koha-conf.xml (for backward compatibility)</li>
-                <li>If configured via koha-conf.xml, they will be automatically migrated to encrypted system preferences</li>
+                <li>If you previously configured via koha-conf.xml, they will be automatically migrated to an encrypted local system preference: WebhookCredentials</li>
             </ul>
         </div>
     </div>
